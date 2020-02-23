@@ -1,19 +1,19 @@
 package Lesson1;
 
-public class Cat implements Runner{
+public class Robot implements Runner{
     private int sprintDistance;
     private double jumpHeight;
     private String name;
     private boolean onDistance;
 
-    public Cat (String name){
+    public Robot (String name){
         this.name = name;
-        sprintDistance = 150;
-        jumpHeight = 1.0;
+        sprintDistance = 300;
+        jumpHeight = 0.8;
         onDistance = true;
     }
 
-    public Cat (String name, int sprintDistance, double jumpHeight) {
+    public Robot(String name, int sprintDistance, double jumpHeight) {
         this.sprintDistance = sprintDistance;
         this.jumpHeight = jumpHeight;
         this.name = name;
