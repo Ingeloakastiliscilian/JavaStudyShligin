@@ -8,8 +8,8 @@ public class Robot implements Runner{
 
     public Robot (String name){
         this.name = name;
-        sprintDistance = 300;
-        jumpHeight = 0.8;
+        sprintDistance = 2000;
+        jumpHeight = 15.0;
         onDistance = true;
     }
 
