@@ -21,24 +21,24 @@ public class Cat implements Runner{
     }
 
     @Override
-    public void runs(Track track) {
-        if (onDistance){
-            if (this.sprintDistance >= track.length)
-                System.out.println(this.name + " successfully ran " + track.length + "m");
+    public void jump(double height) {
+        if (onDistance) {
+            if (this.jumpHeight >= height)
+                System.out.println(this.name + " successfully jumped "+ height + "m");
             else {
-                System.out.println(this.name + " leaves distance");
+                System.out.println(this.name + " came off the distance");
                 this.onDistance = false;
             }
         }
     }
 
     @Override
-    public void jumps(Boarder boarder) {
-        if (onDistance){
-            if (this.jumpHeight >= boarder.height)
-                System.out.println(this.name + " successfully jumped over " + boarder.height + "m");
+    public void run(int distance) {
+        if (onDistance) {
+            if (this.sprintDistance >= distance)
+                System.out.println(this.name + " successfully ran "+ distance + "m");
             else {
-                System.out.println(this.name + " leaves distance");
+                System.out.println(this.name + " came off the distance");
                 this.onDistance = false;
             }
         }

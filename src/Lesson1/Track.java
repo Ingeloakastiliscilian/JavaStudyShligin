@@ -1,13 +1,19 @@
 package Lesson1;
 
-public class Track {
+public class Track implements Obstruction{
+
     int length;
 
-    Track (){
+    public Track (){
         length = 100;
     }
 
-    Track (int length){
+    public Track (int length){
         this.length = length;
+    }
+
+    @Override
+    public void overcome(Runner rn) {
+        rn.run(length);
     }
 }

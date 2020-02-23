@@ -2,9 +2,9 @@ package Lesson1;
 
 public interface Runner {
 
-    void runs (Track track);
+    void jump (double height);
 
-    void jumps(Boarder boarder);
+    void run (int distance);
 
 }
 

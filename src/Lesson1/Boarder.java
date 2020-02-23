@@ -1,13 +1,19 @@
 package Lesson1;
 
-public class Boarder {
+public class Boarder implements Obstruction {
     double height;
 
-    Boarder (){
+    public Boarder() {
         height = 0.3;
     }
 
-    Boarder (double height){
+    public Boarder(double height) {
         this.height = height;
+    }
+
+
+    @Override
+    public void overcome(Runner rn) {
+       rn.jump(height);
     }
 }
