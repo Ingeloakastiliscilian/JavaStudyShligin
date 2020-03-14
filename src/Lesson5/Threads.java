@@ -7,7 +7,7 @@ public class Threads{
     public static int LENGTH = 10000000;
     public static int HALF_L = LENGTH/2;
 
-    static void serialCalc (float[] arr){
+    public static void serialCalc (float[] arr){
         long t0 = System.nanoTime();
         for (int i = 0; i < arr.length; i++) {
             arr[i] = (float)(arr[i] * Math.sin(0.2f + i / 5) * Math.cos(0.2f + i / 5) * Math.cos(0.4f + i / 2));
@@ -16,7 +16,7 @@ public class Threads{
         System.out.println("Serial execution time: " + TimeUnit.NANOSECONDS.toMillis( t1 - t0));
     }
 
-    static void parallelCalc (float[] arr) {
+    public static void parallelCalc (float[] arr) {
         long start = System.nanoTime();
         long stop;
         float[] arr1, arr2;
@@ -48,12 +48,4 @@ public class Threads{
         System.out.println("Parallel execution time: " + TimeUnit.NANOSECONDS.toMillis( stop - start));
     }
 
-    public static void main(String[] args) {
-        float[] arr = new float[(LENGTH)];
-        for (int i = 0; i < LENGTH; i++) {
-            arr[i] = 1;
-        }
-        parallelCalc(arr);
-        serialCalc(arr);
-    }
 }
