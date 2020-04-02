@@ -14,7 +14,7 @@ public class ChatServer {
    private final int port;
    private volatile Map<String, ClientListener> online;
    private BaseAuthService authService;
-   private ServerSocket chatServerSocket;
+   private volatile ServerSocket chatServerSocket;
 
    public ChatServer( int port ) {
       this.port = port;
@@ -22,7 +22,7 @@ public class ChatServer {
 
    public void start() {
       try /*( ServerSocket serverSocket = new ServerSocket(port))*/ {
-         this.chatServerSocket = new ServerSocket( port );
+         chatServerSocket = new ServerSocket( port );
          online = new HashMap<>();
          authService = new BaseAuthService( this );
          authService.start();
@@ -71,7 +71,7 @@ public class ChatServer {
 
       @Override
       public void run() {
-         while ( true ) {
+         while ( clientHandler.isAlive() ) {
 //            if ( clientHandler.noMessages() )
 //               return;
             String mess = clientHandler.readBuffer();

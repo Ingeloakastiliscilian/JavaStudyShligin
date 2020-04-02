@@ -38,7 +38,6 @@ public class BaseAuthService implements AuthService {
    }
 
    private final ChatServer chatServer;
-   private final ServerSocket serverSocket;
    private boolean isRunning;
 
    private static final List<UserData> USER_DATA_LIST = List.of(
@@ -49,8 +48,7 @@ public class BaseAuthService implements AuthService {
 
    public BaseAuthService( ChatServer chatServer ) {
       this.chatServer = chatServer;
-      this.serverSocket = chatServer.getServerSocket();
-      System.out.println( serverSocket.isClosed() );
+      ServerSocket serverSocket = chatServer.getServerSocket();
    }
 
    @Override
@@ -68,11 +66,9 @@ public class BaseAuthService implements AuthService {
                ClientHandler clientHandler = new ClientHandler( clientSocket );
                authenticate( clientHandler );
             } catch ( IOException e ) {
-//               e.printStackTrace();
                System.out.println( "error on start auth service" );
             }
          }
-         System.out.println( "auth service stop" );
       } ).start();
    }
 
@@ -83,9 +79,9 @@ public class BaseAuthService implements AuthService {
 
    @Override
    public void authenticate( ClientHandler clientHandler ) {
+      System.out.println("New auth thread");
       new Thread( () -> {
          boolean correct = false;
-         System.out.println( "auth thread start" + clientHandler.getSocket().toString() );
          while ( !correct ) {
             String mess = clientHandler.readBuffer();
             if ( mess == null ) {
@@ -99,22 +95,23 @@ public class BaseAuthService implements AuthService {
             if ( mess.startsWith( "/auth" ) )
                correct = authClient( clientHandler, mess );
             else
-               clientHandler.pushBuffer( "incorrect auth message" );
+               clientHandler.pushBuffer( "Incorrect auth message" );
          }
-         System.out.println( "auth thread stop" );
       } ).start();
    }
 
    private boolean authClient( ClientHandler clientHandler, String mess ) {
-      System.out.println( "auth in process" );
       String[] authInfo = mess.split( "\\s+", 3 );
-      for ( UserData ud: USER_DATA_LIST ) {
+      if ( authInfo.length < 3 ) {
+         clientHandler.pushBuffer( "Incorrect auth format" );
+         return false;
+      }
+      for ( UserData ud: USER_DATA_LIST )
          if ( ( ud.login.equals( authInfo[1] ) ) && ( ud.password.equals( authInfo[2] ) ) ) {
             chatServer.addOnline( ud.username, clientHandler );
             return true;
          }
-      }
-         clientHandler.pushBuffer( "incorrect login/password" );
+      clientHandler.pushBuffer( "Incorrect login/password" );
       return false;
    }
 }

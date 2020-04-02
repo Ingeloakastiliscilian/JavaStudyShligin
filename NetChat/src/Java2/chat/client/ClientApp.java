@@ -19,6 +19,7 @@ public class ClientApp implements Runnable {
    public void run() {
       try {
          Socket clientSocket = new Socket( "localhost", port );
+         System.out.println("Client app running");
          Chat clientChat = new Chat( "NetChat" );
          clientChat.setInputStream( new DataInputStream( clientSocket.getInputStream() ) );
          clientChat.setOutputStream( new DataOutputStream( clientSocket.getOutputStream() ) );

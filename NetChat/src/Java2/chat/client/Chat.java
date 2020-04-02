@@ -23,7 +23,7 @@ public class Chat extends JFrame {
       while ( true ) {
          try {
             String mess = inputStream.readUTF();
-            if ( mess.length() == 0 )
+            if ( mess == null )
                return;
             if ( ChatServer.DISCONNECT.equals( mess ) ) {
                addMessage( "Server was disconnected" );

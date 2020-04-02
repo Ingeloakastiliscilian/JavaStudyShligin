@@ -11,26 +11,25 @@ public class ClientHandler {
    private Socket socket;
    private DataOutputStream out;
    private DataInputStream in;
-   private volatile boolean alive;
+   private boolean alive;
 
    private volatile LinkedList<String> inBuffer, outBuffer;
 
-   private Thread messageReader = new Thread( () -> {
+   Thread receiver = new Thread( () -> {
       while ( alive ) {
-         receive();
          try {
-//            if ( in.available() > 0 )
+            if ( in.available() > 0 )
+               receive();
             Thread.sleep( 100 );
-         } catch ( /*IOException |*/ InterruptedException e ) {
+         } catch ( IOException | InterruptedException e ) {
             System.out.println( "message reader error" );
          }
       }
    } );
-
-   private Thread messageWriter = new Thread( () -> {
+   Thread sender = new Thread( () -> {
       while ( alive ) {
-         send();
          try {
+            send();
             Thread.sleep( 100 );
          } catch ( InterruptedException e ) {
             e.printStackTrace();
@@ -39,19 +38,21 @@ public class ClientHandler {
    } );
 
    public ClientHandler( Socket socket ) {
+
       this.socket = socket;
+      alive = false;
+      inBuffer = new LinkedList<>();
+      outBuffer = new LinkedList<>();
       try {
          in = new DataInputStream( socket.getInputStream() );
          out = new DataOutputStream( socket.getOutputStream() );
+         alive = true;
+         sender.start();
+         receiver.start();
+         System.out.println( "new handler created" );
       } catch ( IOException e ) {
          System.out.println( "client handler socket create error" );
       }
-      messageReader.start();
-      messageWriter.start();
-      alive = true;
-      inBuffer = new LinkedList<>();
-      outBuffer = new LinkedList<>();
-      System.out.println( "new handler created" );
    }
 
    public void stop() {
@@ -61,29 +62,24 @@ public class ClientHandler {
    private void receive() {
       try {
          String mess = in.readUTF();
-//         if ( mess.length() == 0 )
-//            return;
          if ( ChatServer.DISCONNECT.equals( mess ) ) {
             mess = "Server was disconnected";
             this.stop();
-            socket.close();
          }
          this.inBuffer.add( mess );
       } catch ( IOException e ) {
-         try {
-            in.close();
-         } catch ( IOException ex ) {
-            System.out.println( "can't close socket" );
-         }
          System.out.println( "client handler receive error" );
       }
    }
 
    private void send() {
-      if ( outBuffer.isEmpty() )
-         return;
       try {
-         out.writeUTF( outBuffer.poll() );
+//         System.out.println(outBuffer);
+         while ( !outBuffer.isEmpty() ) {
+            String mess = outBuffer.poll();
+            System.out.println("Send: " + mess);
+            out.writeUTF( mess );
+         }
       } catch ( IOException e ) {
          System.out.println( "client handler send error" );
       }
@@ -96,16 +92,21 @@ public class ClientHandler {
    }
 
    public String readBuffer() {
-      if ( this.inBuffer.isEmpty() )
-         return null;
-      String mess = this.inBuffer.poll();
-      if ( ChatServer.DISCONNECT.equals( mess ) )
-         this.stop();
-      return mess;
+      if ( !inBuffer.isEmpty() ) {
+         String mess = this.inBuffer.poll();
+         if ( ChatServer.DISCONNECT.equals( mess ) )
+            this.stop();
+         return mess;
+      }
+      return null ;
    }
 
    public Socket getSocket() {
       return socket;
+   }
+
+   public boolean isAlive(){
+      return alive;
    }
 
 }
