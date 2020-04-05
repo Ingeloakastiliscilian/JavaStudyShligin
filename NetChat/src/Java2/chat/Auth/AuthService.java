@@ -1,16 +1,14 @@
 package Java2.chat.Auth;
 
-import Java2.chat.server.ClientHandler;
-
-import java.net.ServerSocket;
+import java.io.IOException;
+import java.net.Socket;
 
 public interface AuthService {
 
-    void start();
-    void stop();
+   void start();
 
-    void authenticate ( ClientHandler clientHandler );
+   void stop();
 
-    ServerSocket getServerSocket();
+   void authenticate( Socket socket ) throws IOException, InterruptedException;
 
 }

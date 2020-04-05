@@ -1,4 +1,6 @@
-package Java2.chat.server;
+package Java2.chat.client;
+
+import Java2.chat.server.ChatServer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -15,30 +17,29 @@ public class ClientHandler {
 
    private volatile LinkedList<String> inBuffer, outBuffer;
 
-   Thread receiver = new Thread( () -> {
+   private Thread receiver = new Thread( () -> {
       while ( alive ) {
          try {
-            if ( in.available() > 0 )
-               receive();
-            Thread.sleep( 100 );
-         } catch ( IOException | InterruptedException e ) {
+            receive();
+            Thread.sleep( ChatServer.refreshPeriod() );
+         } catch ( InterruptedException e ) {
             System.out.println( "message reader error" );
          }
       }
    } );
-   Thread sender = new Thread( () -> {
+
+   private Thread sender = new Thread( () -> {
       while ( alive ) {
          try {
             send();
-            Thread.sleep( 100 );
+            Thread.sleep( ChatServer.refreshPeriod() );
          } catch ( InterruptedException e ) {
             e.printStackTrace();
          }
       }
    } );
 
-   public ClientHandler( Socket socket ) {
-
+   ClientHandler( Socket socket ) {
       this.socket = socket;
       alive = false;
       inBuffer = new LinkedList<>();
@@ -62,7 +63,7 @@ public class ClientHandler {
    private void receive() {
       try {
          String mess = in.readUTF();
-         if ( ChatServer.DISCONNECT.equals( mess ) ) {
+         if ( ChatServer.SERVER_CMD_DISCONNECT.equals( mess ) ) {
             mess = "Server was disconnected";
             this.stop();
          }
@@ -73,15 +74,12 @@ public class ClientHandler {
    }
 
    private void send() {
-      try {
-//         System.out.println(outBuffer);
-         while ( !outBuffer.isEmpty() ) {
-            String mess = outBuffer.poll();
-            System.out.println("Send: " + mess);
-            out.writeUTF( mess );
+      while ( !outBuffer.isEmpty() ) {
+         try {
+            out.writeUTF( outBuffer.poll() );
+         } catch ( IOException e ) {
+            System.out.println( "client handler send error" );
          }
-      } catch ( IOException e ) {
-         System.out.println( "client handler send error" );
       }
    }
 
@@ -92,20 +90,17 @@ public class ClientHandler {
    }
 
    public String readBuffer() {
-      if ( !inBuffer.isEmpty() ) {
-         String mess = this.inBuffer.poll();
-         if ( ChatServer.DISCONNECT.equals( mess ) )
-            this.stop();
-         return mess;
-      }
-      return null ;
+      if ( inBuffer.isEmpty() )
+         return "";
+      if ( inBuffer.size() == 1 )
+         return this.inBuffer.poll();
+      StringBuilder temp = new StringBuilder();
+      while ( inBuffer.size() > 0 )
+         temp.append( this.inBuffer.poll() );
+      return temp.toString();
    }
 
-   public Socket getSocket() {
-      return socket;
-   }
-
-   public boolean isAlive(){
+   public boolean isAlive() {
       return alive;
    }
 

@@ -8,69 +8,38 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 
+// TODO: 05.04.2020 Список адресоатов. По возможности добавлять комаду для личного сообщения в поле сообщения по выбору из списка контактов.
 public class Chat extends JFrame {
 
    private JTextField message;
    private JTextArea chat;
-   private DataOutputStream outputStream;
-   private DataInputStream inputStream;
+   private final ClientHandler handler;
 
-   private Thread receiver = new Thread( () -> {
-      while ( true ) {
+   Thread refresher = new Thread( ()-> {
+      while (this.isShowing()) {
+         getMessage();
          try {
-            String mess = inputStream.readUTF();
-            if ( mess == null )
-               return;
-            if ( ChatServer.DISCONNECT.equals( mess ) ) {
-               addMessage( "Server was disconnected" );
-               outputStream.close();
-               inputStream.close();
-               break;
-            }
-            addMessage( mess );
-         } catch ( Exception e ) {
-            System.out.println( "error reading input stream" );
+            Thread.sleep( ChatServer.refreshPeriod() );
+         } catch ( InterruptedException e ) {
+            e.printStackTrace();
          }
       }
-      System.out.println( "receiver stop" );
-   } );
+   });
 
-   private void addMessage( String mess ) {
-      chat.append( mess + "\n" );
-   }
-
-   Chat( String name ) {
+   Chat( String name , ClientHandler handler) {
       setTitle( name );
       buildGUI();
+      this.handler = handler;
    }
 
-   public void setOutputStream( DataOutputStream outputStream ) {
-      this.outputStream = outputStream;
+   public void getMessage() {
+      handler.readBuffer();
    }
 
-   public void setInputStream( DataInputStream inputStream ) {
-      this.inputStream = inputStream;
-      receiver.start();
-   }
-
-   private void sendMessage( String mess ) {
-      if ( mess.isEmpty() )
-         return;
-      try {
-         outputStream.writeUTF( mess );
-         if ( ChatServer.DISCONNECT.equals( mess ) ) {
-            outputStream.close();
-            inputStream.close();
-            return;
-         }
-         message.setText( "" );
-      } catch ( IOException e ) {
-         System.out.println( "Error client send message" );
-      }
+   public void sendMessage( String mess ) {
+      if ( !mess.isEmpty() )
+         handler.pushBuffer( mess );
    }
 
    private void buildGUI() {
@@ -102,7 +71,7 @@ public class Chat extends JFrame {
       addWindowListener( new WindowAdapter() {
          @Override
          public void windowClosing( WindowEvent e ) {
-            sendMessage( ChatServer.DISCONNECT );
+            sendMessage( ChatServer.SERVER_CMD_DISCONNECT );
          }
       } );
    }

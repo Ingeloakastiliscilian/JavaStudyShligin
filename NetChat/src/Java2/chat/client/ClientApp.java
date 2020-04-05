@@ -1,17 +1,14 @@
 package Java2.chat.client;
 
-import Java2.chat.server.ClientHandler;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import javax.swing.*;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class ClientApp implements Runnable {
 
    private static final int DEFAULT_PORT = 8888;
    private final int port;
+   private  ClientHandler handler;
 
    public ClientApp( int port ) {this.port = port;}
 
@@ -20,11 +17,8 @@ public class ClientApp implements Runnable {
       try {
          Socket clientSocket = new Socket( "localhost", port );
          System.out.println("Client app running");
-         Chat clientChat = new Chat( "NetChat" );
-         clientChat.setInputStream( new DataInputStream( clientSocket.getInputStream() ) );
-         clientChat.setOutputStream( new DataOutputStream( clientSocket.getOutputStream() ) );
-      } catch ( UnknownHostException e ) {
-         e.printStackTrace();
+         handler = new ClientHandler( clientSocket );
+         Chat clientChat = new Chat( "NetChat" , handler);
       } catch ( IOException e ) {
          e.printStackTrace();
          System.out.println( "error on socket constructor" );
@@ -39,8 +33,10 @@ public class ClientApp implements Runnable {
          } catch ( NumberFormatException e ) {
             System.out.println( "invalid port for client" );
          }
-      new ClientApp( port ).run();
-      new ClientApp( port ).run();
+      SwingUtilities.invokeLater( new ClientApp( port ) );
+      SwingUtilities.invokeLater( new ClientApp( port ) );
+//      new ClientApp( port ).run();
+//      new ClientApp( port ).run();
    }
 
 
