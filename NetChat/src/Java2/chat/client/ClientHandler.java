@@ -18,12 +18,13 @@ public class ClientHandler {
    private volatile LinkedList<String> inBuffer, outBuffer;
 
    private Thread receiver = new Thread( () -> {
+      System.out.println("Receiver started");
       while ( alive ) {
          try {
             receive();
             Thread.sleep( ChatServer.refreshPeriod() );
          } catch ( InterruptedException e ) {
-            System.out.println( "message reader error" );
+            System.out.println( "CL_HND ERROR: RECEIVER" );
          }
       }
    } );
@@ -33,8 +34,9 @@ public class ClientHandler {
          try {
             send();
             Thread.sleep( ChatServer.refreshPeriod() );
-         } catch ( InterruptedException e ) {
+         } catch ( InterruptedException | IOException e ) {
             e.printStackTrace();
+            System.out.println("CL_HND ERROR: SENDER");
          }
       }
    } );
@@ -45,8 +47,8 @@ public class ClientHandler {
       inBuffer = new LinkedList<>();
       outBuffer = new LinkedList<>();
       try {
-         in = new DataInputStream( socket.getInputStream() );
-         out = new DataOutputStream( socket.getOutputStream() );
+         in = new DataInputStream( this.socket.getInputStream() );
+         out = new DataOutputStream( this.socket.getOutputStream() );
          alive = true;
          sender.start();
          receiver.start();
@@ -58,11 +60,20 @@ public class ClientHandler {
 
    public void stop() {
       alive = false;
+      try {
+         receiver.join();
+         sender.join();
+      } catch ( InterruptedException e ) {
+         e.printStackTrace();
+      }
    }
 
    private void receive() {
       try {
+         if ( in.available() == 0 )
+            return;
          String mess = in.readUTF();
+         System.out.println("Received: " + mess);
          if ( ChatServer.SERVER_CMD_DISCONNECT.equals( mess ) ) {
             mess = "Server was disconnected";
             this.stop();
@@ -73,13 +84,9 @@ public class ClientHandler {
       }
    }
 
-   private void send() {
+   private void send() throws IOException {
       while ( !outBuffer.isEmpty() ) {
-         try {
-            out.writeUTF( outBuffer.poll() );
-         } catch ( IOException e ) {
-            System.out.println( "client handler send error" );
-         }
+         out.writeUTF( outBuffer.poll() );
       }
    }
 

@@ -33,11 +33,9 @@ public class ClientApp implements Runnable {
          } catch ( NumberFormatException e ) {
             System.out.println( "invalid port for client" );
          }
-      SwingUtilities.invokeLater( new ClientApp( port ) );
-      SwingUtilities.invokeLater( new ClientApp( port ) );
-//      new ClientApp( port ).run();
-//      new ClientApp( port ).run();
+      new ClientApp( port ).run();
+      new ClientApp( port ).run();
+      new ClientApp( port ).run();
    }
-
 
 }

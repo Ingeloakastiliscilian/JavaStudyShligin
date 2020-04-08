@@ -9,15 +9,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-// TODO: 05.04.2020 Список адресоатов. По возможности добавлять комаду для личного сообщения в поле сообщения по выбору из списка контактов.
 public class Chat extends JFrame {
 
    private JTextField message;
    private JTextArea chat;
-   private final ClientHandler handler;
+   private ClientHandler handler;
 
    Thread refresher = new Thread( ()-> {
-      while (this.isShowing()) {
+      while ( handler.isAlive() ) {
          getMessage();
          try {
             Thread.sleep( ChatServer.refreshPeriod() );
@@ -31,15 +30,19 @@ public class Chat extends JFrame {
       setTitle( name );
       buildGUI();
       this.handler = handler;
+      refresher.start();
    }
 
    public void getMessage() {
-      handler.readBuffer();
+      String income = handler.readBuffer();
+      if ( !income.isEmpty() )
+         chat.append( income );
    }
 
    public void sendMessage( String mess ) {
       if ( !mess.isEmpty() )
-         handler.pushBuffer( mess );
+         handler.pushBuffer( mess + "\n");
+      message.setText( "" );
    }
 
    private void buildGUI() {
@@ -60,6 +63,7 @@ public class Chat extends JFrame {
       sendButton.addActionListener( e -> sendMessage( message.getText().trim() ) );
       JPanel messagePanel = new JPanel( new BorderLayout() );
       JScrollPane chatPane = new JScrollPane( chat );
+      chatPane.setAutoscrolls( true );
       messagePanel.add( sendButton, BorderLayout.LINE_END );
       messagePanel.add( message, BorderLayout.CENTER );
       mainPanel.add( messagePanel, BorderLayout.PAGE_END );
@@ -71,7 +75,7 @@ public class Chat extends JFrame {
       addWindowListener( new WindowAdapter() {
          @Override
          public void windowClosing( WindowEvent e ) {
-            sendMessage( ChatServer.SERVER_CMD_DISCONNECT );
+            handler.stop();
          }
       } );
    }

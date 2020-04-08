@@ -1,6 +1,5 @@
 package Java2.chat.Auth;
 
-import java.io.IOException;
 import java.net.Socket;
 
 public interface AuthService {
@@ -9,6 +8,13 @@ public interface AuthService {
 
    void stop();
 
-   void authenticate( Socket socket ) throws IOException, InterruptedException;
+   boolean isWorking();
 
+   boolean hasApproved();
+
+   <T> T getSocketID( Socket socket );
+
+   <T> T unplug( Socket socket );
+
+   Socket getApproved();
 }
